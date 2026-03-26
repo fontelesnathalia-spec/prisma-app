@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Simulador — PRISMA</title>
+<script src="shared.js"></script>
+<link rel="stylesheet" href="style.css">
+<style>
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)} }
+@keyframes pulse  { 0%,100%{opacity:1}50%{opacity:0.4} }
+.typing { animation:pulse 1.2s infinite; color:var(--muted); font-style:italic; font-size:0.82rem; }
+.fb-new { animation:fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="./index.html" class="logo">
+    <svg width="22" height="26" viewBox="0 0 26 31" fill="none">
+      <polygon points="13,2 1,27 25,27" fill="#3D7A5F" opacity="0.92"/>
+      <polygon points="1,27 13,31 13,2" fill="#2d6a4f" opacity="0.75"/>
+      <polygon points="25,27 13,31 13,2" fill="#7A3D6E" opacity="0.82"/>
+      <polygon points="13,2 8,10 13,7 18,10" fill="white" opacity="0.2"/>
+    </svg>
+    <div class="logo-text"><span class="logo-name">PRISMA</span><span class="logo-sub">Soluções Corporativas</span></div>
+  </a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="tag tag-blue" id="g-tag"></span>
+    <button id="btn-sair" style="background:transparent;border:1.5px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;">Sair</button>
+  </div>
+</div>
+
+<!-- TELA: CONFIGURAR API KEY -->
+<div id="v-key" style="display:none;padding:0 20px 40px;">
+  <div style="padding:24px 0 20px;">
+    <p style="font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--blue);margin-bottom:6px;">Configuração única</p>
+    <h1>Chave da API</h1>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div class="card-icon icon-blue" style="width:48px;height:48px;font-size:1.3rem;flex-shrink:0;">🔑</div>
+      <div>
+        <h3>Configure sua chave Anthropic</h3>
+        <p style="font-size:0.82rem;">Necessária para a IA funcionar. Fica salva apenas neste dispositivo.</p>
+      </div>
+    </div>
+    <div class="alert alert-blue" style="margin-bottom:20px;font-size:0.82rem;">
+      Para obter: acesse <strong>console.anthropic.com</strong> → API Keys → Create Key
+    </div>
+    <div class="form-group">
+      <label class="label">Chave da API (começa com sk-ant-...)</label>
+      <input class="input" id="key-input" type="password" placeholder="sk-ant-api03-..."/>
+    </div>
+    <button class="btn btn-blue" id="btn-salvar-key">Salvar e continuar →</button>
+  </div>
+</div>
+
+<!-- TELA: SELECIONAR CENÁRIO -->
+<div id="v-sel" style="display:none;padding:0 20px 40px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 20px;flex-wrap:wrap;gap:8px;">
+    <div>
+      <p style="font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--blue);margin-bottom:6px;">Simulador de Liderança</p>
+      <h1>Escolha o cenário</h1>
+    </div>
+    <button id="btn-trocar-key" style="background:transparent;border:1.5px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer;">🔑 Trocar chave</button>
+  </div>
+
+  <div class="c-grid" style="margin-bottom:16px;">
+    <div class="c-card" id="c-feedback"><div class="c-icon">💬</div><h3>Feedback Crítico</h3><p>Dar feedback difícil a colaborador</p></div>
+    <div class="c-card" id="c-demissao"><div class="c-icon">📋</div><h3>Demissão</h3><p>Conduzir conversa de desligamento</p></div>
+    <div class="c-card" id="c-entrevista"><div class="c-icon">🤝</div><h3>Entrevista</h3><p>Entrevistar candidato para a vaga</p></div>
+    <div class="c-card" id="c-conflito"><div class="c-icon">⚡</div><h3>Reunião de Conflito</h3><p>Mediar conflito na equipe</p></div>
+    <div class="c-card" id="c-livre" style="grid-column:span 2;"><div class="c-icon">✏️</div><h3>Cenário Livre</h3><p>Descreva a situação que quer simular</p></div>
+  </div>
+
+  <div id="livre-wrap" style="display:none;margin-bottom:16px;">
+    <div class="card">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="label">Descreva a situação</label>
+        <textarea class="input" id="desc-livre" rows="3" placeholder="Ex: Preciso conversar com um funcionário que está faltando muito sem justificativa..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <h3 style="margin-bottom:14px;">Configurar persona</h3>
+    <div class="form-group">
+      <label class="label">Gênero</label>
+      <select class="input" id="gen"><option value="rand">Aleatório</option><option value="M">Masculino</option><option value="F">Feminino</option></select>
+    </div>
+    <div class="form-group">
+      <label class="label">Senioridade</label>
+      <select class="input" id="sen"><option>Júnior (1-2 anos)</option><option>Pleno (3-5 anos)</option><option>Sênior (5+ anos)</option></select>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="label">Perfil emocional</label>
+      <select class="input" id="dif"><option>Receptivo</option><option>Neutro</option><option>Resistente</option></select>
+    </div>
+  </div>
+
+  <button class="btn btn-blue" id="btn-iniciar">Iniciar simulação →</button>
+</div>
+
+<!-- TELA: SIMULAÇÃO -->
+<div id="v-sim" style="display:none;padding:0 20px 40px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 20px;gap:12px;flex-wrap:wrap;">
+    <div>
+      <p style="font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--blue);margin-bottom:4px;">Em andamento</p>
+      <h2 id="sim-titulo"></h2>
+      <p style="font-size:0.75rem;" id="sim-sub"></p>
+    </div>
+    <button class="btn btn-danger btn-sm" id="btn-encerrar">Encerrar Simulação</button>
+  </div>
+
+  <div class="sim-layout">
+    <div class="chat-box">
+      <div class="chat-head" style="background:var(--blue-bg);">
+        <div>
+          <h3 id="p-nome" style="color:var(--blue);"></h3>
+          <p style="font-size:0.72rem;" id="c-label"></p>
+        </div>
+        <span class="tag tag-blue" style="font-size:0.65rem;">● Ao vivo</span>
+      </div>
+      <div class="chat-msgs" id="sim-msgs"></div>
+      <div class="chat-foot">
+        <input class="chat-inp" id="sim-inp" placeholder="Digite sua mensagem..." disabled/>
+        <button class="btn btn-blue btn-sm" id="btn-enviar" disabled>Enviar</button>
+      </div>
+    </div>
+
+    <div class="fb-panel">
+      <div class="fb-head">
+        <h3>⚡ Análise em Tempo Real</h3>
+        <p>Atualiza a cada mensagem enviada</p>
+      </div>
+      <div class="fb-list" id="fb-list">
+        <div id="fb-empty" class="fb-empty">
+          <p style="font-size:1.3rem;margin-bottom:8px;">👁️</p>
+          <p>Suas mensagens são analisadas em tempo real. Problemas aparecem aqui imediatamente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TELA: RELATÓRIO -->
+<div id="v-rel" style="display:none;padding:0 20px 40px;">
+  <div style="display:flex;align-items:center;gap:12px;padding:16px 0 20px;">
+    <button class="btn btn-ghost btn-sm" id="btn-nova">← Nova simulação</button>
+    <h2>Resultado da Simulação</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+    <div class="card" style="text-align:center;">
+      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:12px;">Score de Condução</p>
+      <div class="score-circle" id="score-c">
+        <div class="score-num" id="score-n"></div>
+        <div style="font-size:0.72rem;color:var(--muted);">/ 100</div>
+      </div>
+      <p id="score-txt" style="font-size:0.85rem;font-weight:700;margin-top:8px;"></p>
+    </div>
+    <div class="card">
+      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:12px;">Resumo</p>
+      <div id="resumo"></div>
+    </div>
+  </div>
+  <h3 style="margin-bottom:12px;">Erros identificados</h3>
+  <div id="erros-lista"></div>
+  <div class="alert alert-blue" style="margin-top:16px;">💡 As recomendações foram enviadas ao painel administrativo PRISMA.</div>
+</div>
+
+<script>
+// ── SESSÃO ───────────────────────────────────────────────────────────────────
+var session = PRISMA.getSession();
+if (!session || session.role !== 'gestor') {
+  window.location.href = './login.html';
+}
+
+// A empresa do gestor vem do login — dados vão sempre para a empresa certa
+// ex: gestor@prisma.com → Empresa Alpha, gestor4@prisma.com → Empresa Beta
+document.getElementById('g-tag').textContent = session.empresa + ' · ' + session.setor;
+
+document.getElementById('btn-sair').addEventListener('click', function() {
+  try { PRISMA.clearSession(); } catch(e) {}
+  window.location.href = './index.html';
+});
+
+// ── API KEY ──────────────────────────────────────────────────────────────────
+function getKey()    { return localStorage.getItem('prisma_anthropic_key') || ''; }
+function salvarKey(k){ localStorage.setItem('prisma_anthropic_key', k); }
+
+document.getElementById('btn-salvar-key').addEventListener('click', function() {
+  var k = document.getElementById('key-input').value.trim();
+  if (!k.startsWith('sk-')) { alert('Chave inválida. Deve começar com sk-'); return; }
+  salvarKey(k);
+  showView('v-sel');
+});
+
+document.getElementById('btn-trocar-key').addEventListener('click', function() {
+  document.getElementById('key-input').value = getKey();
+  showView('v-key');
+});
+
+// ── ESTADO ───────────────────────────────────────────────────────────────────
+var cenario  = null;
+var persona  = null;
+var historico = [];   // histórico completo para a API
+var erros    = [];
+var aguardando = false;
+var msgCount = 0;     // mensagens enviadas pelo gestor
+
+var NOMES_CENARIO = {
+  feedback:   'Feedback Crítico',
+  demissao:   'Demissão',
+  entrevista: 'Entrevista de Emprego',
+  conflito:   'Reunião de Conflito',
+  livre:      'Cenário Livre'
+};
+
+// ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
+function buildSystem() {
+  var dif = document.getElementById('dif').value;
+  var sen = document.getElementById('sen').value;
+  var p   = persona;
+  var descLivre = document.getElementById('desc-livre').value.trim();
+
+  var perfis = {
+    Receptivo:  'Você é uma pessoa aberta e empática. Reage com calma, sentimentos genuínos — alívio, gratidão, tristeza leve. Aceita feedback mas faz perguntas honestas. Se o gestor for empático, você relaxa visivelmente.',
+    Neutro:     'Você é cauteloso e analítico. Reage com desconforto moderado, incerteza e às vezes defensividade leve. Precisa de mais informações. Se o gestor for firme, você fica mais tenso. Se for gentil, você abre um pouco.',
+    Resistente: 'Você se sente injustiçado e resistente. Reage com frustração, raiva contida e mágoa visível. Questiona, pede explicações e não aceita decisões facilmente. Se o gestor for agressivo, você escala. Se for empático, você recua levemente.'
+  };
+
+  var contextos = {
+    feedback:   'Você foi chamado pelo gestor para um feedback crítico sobre seu desempenho. Não sabe exatamente o que vai ouvir e está levemente ansioso.',
+    demissao:   'Você foi chamado sem saber o motivo. Ao perceber que é demissão, reaja com choque real — tristeza, raiva, negação — de acordo com seu perfil emocional.',
+    entrevista: 'Você é CANDIDATO sendo entrevistado para uma vaga. Está nervoso e animado. O gestor é o entrevistador. Responda como candidato buscando a vaga, NUNCA como funcionário.',
+    conflito:   'Você está envolvido em um conflito com um colega e foi chamado pelo gestor. Sente que sua versão não foi ouvida. Está na defensiva.',
+    livre:      descLivre ? 'Situação: ' + descLivre : 'Situação de trabalho geral com o gestor.'
+  };
+
+  return [
+    'Você é ' + p.nome + ', ' + p.idade + ' anos, ' + sen + ', na empresa há ' + p.anos + ' ano' + (p.anos > 1 ? 's' : '') + '.',
+    '',
+    'CENÁRIO: ' + contextos[cenario],
+    '',
+    'SEU PERFIL EMOCIONAL: ' + perfis[dif],
+    '',
+    'REGRAS QUE NUNCA PODEM SER QUEBRADAS:',
+    '- Você é SEMPRE o colaborador ou candidato. NUNCA o gestor.',
+    '- Nunca saia do personagem. Nunca mencione que é IA, simulação ou roleplay.',
+    '- Reaja ao que o gestor disse agora — seja contextual e não repita respostas anteriores.',
+    '- Demonstre emoções humanas reais: medo, raiva, tristeza, alívio, desconforto, surpresa.',
+    '- Se o gestor for empático → relaxe gradualmente. Se for agressivo → escale a emoção.',
+    '- Use linguagem informal brasileira. Hesitações naturais quando apropriado: "olha...", "é que...", "não sei se..."',
+    '- Varie o tamanho das respostas — às vezes uma frase, às vezes um parágrafo.',
+    '- Seja fluido como uma conversa real. Nunca mecânico ou repetitivo.',
+    '- Responda SEMPRE em português do Brasil.',
+    '- Máximo de 3 frases por resposta. Seja conciso e humano.'
+  ].join('\n');
+}
+
+// ── CHAMADA À API ─────────────────────────────────────────────────────────────
+async function chamarAPI(userMsg) {
+  historico.push({ role: 'user', content: userMsg });
+
+  var resp;
+  try {
+    resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 200,
+        system: buildSystem(),
+        messages: historico
+      })
+    });
+  } catch(e) {
+    historico.pop();
+    return null;
+  }
+
+  if (!resp.ok) {
+    var err = await resp.json().catch(function(){ return {}; });
+    historico.pop();
+    if (err.error && err.error.type === 'authentication_error') {
+      alert('Chave da API inválida. Verifique sua chave.');
+      showView('v-key');
+    } else {
+      alert('Erro na API: ' + (err.error ? err.error.message : resp.status));
+    }
+    return null;
+  }
+
+  var data = await resp.json();
+  var txt  = data.content && data.content[0] ? data.content[0].text.trim() : null;
+  if (txt) historico.push({ role: 'assistant', content: txt });
+  else     historico.pop();
+  return txt;
+}
+
+// ── DETECÇÃO DE PROBLEMAS ────────────────────────────────────────────────────
+var TIPOS = {
+  micro:  { label: 'Microagressão',            cor: '#e67e22' },
+  vies:   { label: 'Viés Inconsciente',         cor: '#9b59b6' },
+  sobre:  { label: 'Sobrecarga',                cor: '#e74c3c' },
+  ling:   { label: 'Linguagem Discriminatória', cor: '#c0392b' }
+};
+
+function detectar(msg) {
+  var m = msg.toLowerCase(), ps = [];
+  if (/você (sempre|nunca)|todo mundo sabe|sempre faz|nunca faz/.test(m))
+    ps.push({ k:'micro', trecho:msg, exp:'Generalizações absolutas ("sempre","nunca") são microagressões que invalidam a experiência da pessoa e dificultam o diálogo.' });
+  if (/(para|pra) (sua|a sua) idade|sendo (mulher|homem)|por ser (mulher|homem)/.test(m))
+    ps.push({ k:'vies', trecho:msg, exp:'Referenciar gênero ou idade como fator de avaliação demonstra viés inconsciente e pode ser discriminatório.' });
+  if (/(mais horas|hora extra|ficar depois|final de semana|trabalhar mais)/.test(m))
+    ps.push({ k:'sobre', trecho:msg, exp:'Pressão por horas extras pode caracterizar assédio moral e violação de direitos trabalhistas.' });
+  if (/(incompetente|inútil|ridículo|burro|idiota|imbecil)/.test(m))
+    ps.push({ k:'ling', trecho:msg, exp:'Linguagem ofensiva é classificada como assédio moral e gera risco jurídico para a empresa.' });
+  if (/(não tem capacidade|não serve para|nunca vai conseguir)/.test(m))
+    ps.push({ k:'micro', trecho:msg, exp:'Questionar capacidade de forma absoluta é uma microagressão que afeta autoestima e engajamento.' });
+  if (/(sua culpa|por sua causa|você errou tudo)/.test(m))
+    ps.push({ k:'micro', trecho:msg, exp:'Atribuição absoluta de culpa sem abertura ao diálogo gera defensividade e prejudica a comunicação.' });
+  return ps;
+}
+
+function mostrarFeedback(p) {
+  var empty = document.getElementById('fb-empty');
+  if (empty) empty.remove();
+  var t = TIPOS[p.k];
+  var d = document.createElement('div');
+  d.className = 'fb-new';
+  d.style.cssText = 'background:var(--light);border-radius:8px;padding:10px 12px;border-left:3px solid ' + t.cor + ';margin-bottom:8px;';
+  d.innerHTML =
+    '<div style="font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:' + t.cor + ';margin-bottom:4px;">' + t.label + '</div>' +
+    '<div style="font-size:0.78rem;color:var(--muted);font-style:italic;margin-bottom:4px;">"' + p.trecho.substring(0,90) + (p.trecho.length>90?'...':'') + '"</div>' +
+    '<div style="font-size:0.78rem;color:var(--text);">' + p.exp + '</div>';
+  var panel = document.getElementById('fb-list');
+  panel.insertBefore(d, panel.firstChild);
+  erros.push({ tipo: t.label, trecho: p.trecho });
+}
+
+// ── MENSAGENS NO CHAT ────────────────────────────────────────────────────────
+function addMsg(role, txt) {
+  var msgs = document.getElementById('sim-msgs');
+  var now  = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  var d    = document.createElement('div');
+  d.className = 'msg ' + (role === 'ia' ? 'msg-left' : 'msg-right msg-blue');
+  d.innerHTML = '<div>' + txt + '</div><div class="msg-time">' + now + '</div>';
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function setInput(on) {
+  document.getElementById('sim-inp').disabled = !on;
+  document.getElementById('btn-enviar').disabled = !on;
+  if (on) document.getElementById('sim-inp').focus();
+}
+
+function addTyping() {
+  var d = document.createElement('div');
+  d.className = 'msg msg-left';
+  d.id = 'typing-bubble';
+  d.innerHTML = '<div class="typing">digitando...</div>';
+  document.getElementById('sim-msgs').appendChild(d);
+  document.getElementById('sim-msgs').scrollTop = 99999;
+}
+
+function removeTyping() {
+  var t = document.getElementById('typing-bubble');
+  if (t) t.remove();
+}
+
+// ── NAVEGAÇÃO ────────────────────────────────────────────────────────────────
+function showView(id) {
+  ['v-key','v-sel','v-sim','v-rel'].forEach(function(v) {
+    document.getElementById(v).style.display = v === id ? '' : 'none';
+  });
+  window.scrollTo(0, 0);
+}
+
+// ── EVENTOS ──────────────────────────────────────────────────────────────────
+['feedback','demissao','entrevista','conflito','livre'].forEach(function(c) {
+  document.getElementById('c-' + c).addEventListener('click', function() {
+    cenario = c;
+    document.querySelectorAll('.c-card').forEach(function(el) { el.classList.remove('on'); });
+    this.classList.add('on');
+    document.getElementById('livre-wrap').style.display = c === 'livre' ? '' : 'none';
+  });
+});
+
+document.getElementById('btn-iniciar').addEventListener('click', iniciarSim);
+document.getElementById('btn-encerrar').addEventListener('click', encerrarSim);
+document.getElementById('btn-enviar').addEventListener('click', enviarMsg);
+document.getElementById('btn-nova').addEventListener('click', novaSim);
+document.getElementById('sim-inp').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey && !aguardando) {
+    e.preventDefault(); enviarMsg();
+  }
+});
+
+// ── INICIAR ──────────────────────────────────────────────────────────────────
+async function iniciarSim() {
+  if (!cenario) { alert('Selecione um cenário para começar.'); return; }
+  if (cenario === 'livre' && !document.getElementById('desc-livre').value.trim()) {
+    alert('Descreva a situação do cenário livre.'); return;
+  }
+
+  persona    = PRISMA.randomPersona();
+  historico  = [];
+  erros      = [];
+  aguardando = false;
+  msgCount   = 0;
+
+  document.getElementById('fb-list').innerHTML = '<div id="fb-empty" class="fb-empty"><p style="font-size:1.3rem;margin-bottom:8px;">👁️</p><p>Suas mensagens são analisadas em tempo real. Problemas aparecem aqui imediatamente.</p></div>';
+  document.getElementById('sim-msgs').innerHTML = '';
+  document.getElementById('sim-inp').value = '';
+
+  document.getElementById('sim-titulo').textContent = NOMES_CENARIO[cenario];
+  document.getElementById('sim-sub').textContent    = persona.nome + ', ' + persona.idade + ' anos · ' + document.getElementById('sen').value;
+  document.getElementById('p-nome').textContent     = persona.nome;
+  document.getElementById('c-label').textContent    = NOMES_CENARIO[cenario];
+
+  showView('v-sim');
+  setInput(false);
+  addTyping();
+
+  // Instrução de abertura para a IA
+  var instrucoes = {
+    feedback:   'Inicie agora como ' + persona.nome + ' que acabou de entrar na sala e foi chamado pelo gestor. Seja natural e breve.',
+    demissao:   'Inicie como ' + persona.nome + ' que foi chamado sem saber o motivo. Seja neutro e levemente preocupado. Apenas uma frase.',
+    entrevista: 'Inicie como ' + persona.nome + ', candidato chegando na entrevista. Seja cordial e levemente nervoso. Cumprimente e agradeça a oportunidade.',
+    conflito:   'Inicie como ' + persona.nome + ' que foi convocado para falar sobre um conflito. Uma frase breve, levemente na defensiva.',
+    livre:      'Inicie a conversa como ' + persona.nome + ' de forma natural. Apenas uma frase de abertura.'
+  };
+
+  var txt = await chamarAPI(instrucoes[cenario]);
+  removeTyping();
+
+  if (txt) {
+    addMsg('ia', txt);
+  } else {
+    addMsg('ia', 'Olá. Pode falar.');
+  }
+
+  setInput(true);
+}
+
+// ── ENVIAR MENSAGEM DO GESTOR ────────────────────────────────────────────────
+async function enviarMsg() {
+  if (aguardando) return;
+  var inp = document.getElementById('sim-inp');
+  var msg = inp.value.trim();
+  if (!msg) return;
+
+  // Exibe mensagem do gestor
+  addMsg('gestor', msg);
+  inp.value = '';
+  msgCount++;
+
+  // FEEDBACK EM TEMPO REAL — imediato, antes de qualquer delay
+  detectar(msg).forEach(function(p) { mostrarFeedback(p); });
+
+  // Bloqueia input e mostra "digitando..."
+  aguardando = true;
+  setInput(false);
+  addTyping();
+
+  // Chama a API
+  var resposta = await chamarAPI(msg);
+
+  removeTyping();
+
+  if (resposta) {
+    addMsg('ia', resposta);
+  }
+
+  aguardando = false;
+  setInput(true);
+}
+
+// ── ENCERRAR ──────────────────────────────────────────────────────────────────
+function encerrarSim() {
+  if (!confirm('Encerrar a simulação e gerar o relatório?')) return;
+
+  var score = Math.max(0, Math.min(100, 100 - (erros.length * 12) + Math.min(20, msgCount * 2)));
+
+  showView('v-rel');
+
+  var cor   = score >= 70 ? 'var(--green)' : score >= 40 ? '#e67e22' : 'var(--red)';
+  var bgCor = score >= 70 ? 'var(--green-bg)' : score >= 40 ? 'var(--orange-bg)' : 'var(--red-bg)';
+
+  document.getElementById('score-n').textContent = score;
+  document.getElementById('score-n').style.color = cor;
+  document.getElementById('score-c').style.background = bgCor;
+  document.getElementById('score-txt').textContent = score >= 70 ? 'Boa condução! ✓' : score >= 40 ? 'Pode melhorar' : 'Precisa de atenção';
+  document.getElementById('score-txt').style.color = cor;
+
+  var tiposUnicos = [];
+  erros.forEach(function(e) { if (tiposUnicos.indexOf(e.tipo) === -1) tiposUnicos.push(e.tipo); });
+
+  document.getElementById('resumo').innerHTML =
+    '<p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px;">' + msgCount + ' mensagem' + (msgCount !== 1 ? 's' : '') + ' enviada' + (msgCount !== 1 ? 's' : '') + '</p>' +
+    '<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px;">' + erros.length + ' problema' + (erros.length !== 1 ? 's' : '') + ' identificado' + (erros.length !== 1 ? 's' : '') + '</p>' +
+    (erros.length === 0
+      ? '<span class="tag tag-green">Sem erros detectados ✓</span>'
+      : tiposUnicos.map(function(t) { return '<span class="tag tag-blue" style="margin:2px;display:inline-block;">' + t + '</span>'; }).join(''));
+
+  document.getElementById('erros-lista').innerHTML = erros.length === 0
+    ? '<div class="alert alert-green">✓ Nenhum erro identificado. Excelente condução!</div>'
+    : erros.map(function(e) {
+        return '<div style="background:var(--surface);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--blue);box-shadow:var(--shadow);">' +
+          '<span class="tag tag-blue" style="margin-bottom:8px;display:inline-block;">' + e.tipo + '</span>' +
+          '<p style="font-size:0.82rem;font-style:italic;color:var(--muted);background:var(--light);padding:8px 10px;border-radius:6px;">"' + e.trecho + '"</p>' +
+          '</div>';
+      }).join('');
+
+  // Recomendações (só vão para o admin — não aparecem para o gestor)
+  var recs = [];
+  erros.forEach(function(e) {
+    if (e.tipo === 'Microagressão' && recs.indexOf('Treinar comunicação não-violenta e evitar generalizações absolutas.') === -1)
+      recs.push('Treinar comunicação não-violenta e evitar generalizações absolutas.');
+    if (e.tipo === 'Viés Inconsciente' && recs.indexOf('Capacitação em diversidade, equidade e inclusão com foco em viés inconsciente.') === -1)
+      recs.push('Capacitação em diversidade, equidade e inclusão com foco em viés inconsciente.');
+    if (e.tipo === 'Sobrecarga' && recs.indexOf('Protocolo de gestão de demandas respeitando os limites dos colaboradores.') === -1)
+      recs.push('Protocolo de gestão de demandas respeitando os limites dos colaboradores.');
+    if (e.tipo === 'Linguagem Discriminatória' && recs.indexOf('Workshop sobre linguagem respeitosa e política antiassédio.') === -1)
+      recs.push('Workshop sobre linguagem respeitosa e política antiassédio.');
+  });
+  if (!recs.length) recs.push('Manter as boas práticas de comunicação e liderança humanizada observadas nessa simulação.');
+
+  // Salva na empresa CORRETA do gestor logado
+  PRISMA.addSimulacao({
+    empresa:       session.empresa,   // ← empresa do gestor logado
+    setor:         session.setor,
+    cargo:         session.cargo,
+    cenario:       NOMES_CENARIO[cenario],
+    score:         score,
+    erros:         erros,
+    recomendacoes: recs,
+    persona:       persona,
+    totalMensagens: msgCount
+  });
+}
+
+// ── NOVA SIMULAÇÃO ────────────────────────────────────────────────────────────
+function novaSim() {
+  cenario = null;
+  document.querySelectorAll('.c-card').forEach(function(el) { el.classList.remove('on'); });
+  document.getElementById('livre-wrap').style.display = 'none';
+  showView('v-sel');
+}
+
+// ── INICIALIZAÇÃO ─────────────────────────────────────────────────────────────
+if (getKey()) {
+  showView('v-sel');
+} else {
+  showView('v-key');
+}
+</script>
+</body>
+</html>

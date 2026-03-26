@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Portal do Profissional — PRISMA</title>
+<script src="shared.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html" class="logo">
+    <svg width="22" height="26" viewBox="0 0 26 31" fill="none">
+      <polygon points="13,2 1,27 25,27" fill="#3D7A5F" opacity="0.92"/>
+      <polygon points="1,27 13,31 13,2" fill="#2d6a4f" opacity="0.75"/>
+      <polygon points="25,27 13,31 13,2" fill="#7A3D6E" opacity="0.82"/>
+      <polygon points="13,2 8,10 13,7 18,10" fill="white" opacity="0.2"/>
+    </svg>
+    <div class="logo-text"><span class="logo-name">PRISMA</span><span class="logo-sub">Soluções Corporativas</span></div>
+  </a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="tag tag-green" id="prof-tag"></span>
+    <button onclick="sairApp()" style="background:transparent;border:1.5px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;">Sair</button>
+  </div>
+</div>
+
+<!-- AGENDA -->
+<div id="v-agenda">
+  <div style="padding:24px 20px 12px;">
+    <p style="font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--green);margin-bottom:6px;">Profissional</p>
+    <h1>Minha Agenda</h1>
+  </div>
+  <div style="padding:0 20px;" id="lista-ses"></div>
+</div>
+
+<!-- SESSÃO -->
+<div id="v-sessao" style="display:none;">
+  <div style="padding:20px 20px 0;display:flex;align-items:center;gap:12px;">
+    <button class="btn btn-ghost btn-sm" onclick="voltar()">← Agenda</button>
+    <div><h2 id="s-titulo"></h2><p style="font-size:0.75rem;" id="s-sub"></p></div>
+  </div>
+  <div style="padding:16px 20px;">
+    <div id="chat-box" class="chat-box">
+      <div class="chat-head">
+        <div><h3 style="color:var(--green);">Chat ao vivo</h3><p style="font-size:0.72rem;" id="chat-emp"></p></div>
+        <button class="btn btn-danger btn-sm" onclick="encerrar()">Encerrar sessão</button>
+      </div>
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="msg msg-left"><div>Olá, estou aqui para conversar.</div><div class="msg-time">Agora</div></div>
+      </div>
+      <div class="chat-foot">
+        <input class="chat-inp" id="chat-inp" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviar()"/>
+        <button class="btn btn-green btn-sm" onclick="enviar()">Enviar</button>
+      </div>
+    </div>
+
+    <div id="pos-form" style="display:none;margin-top:16px;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <div class="card-icon icon-green" style="width:40px;height:40px;font-size:1.1rem;">📋</div>
+          <div><h2>Formulário Pós-Sessão</h2><p style="font-size:0.75rem;">Empresa: <strong id="ps-emp"></strong> 🔒</p></div>
+        </div>
+        <div class="form-group"><label class="label">Resumo da sessão</label><textarea class="input" id="ps-resumo" rows="3" placeholder="Descreva brevemente o que foi abordado..."></textarea></div>
+        <div class="form-group"><label class="label">Principais temas</label><textarea class="input" id="ps-temas" rows="2" placeholder="Ex: conflito, sobrecarga, ansiedade..."></textarea></div>
+        <div class="form-group">
+          <label class="label">Nível de sofrimento (1–5)</label>
+          <div class="nota-row" id="notas">
+            <button class="nota-btn" onclick="setNota(1)">1</button>
+            <button class="nota-btn" onclick="setNota(2)">2</button>
+            <button class="nota-btn" onclick="setNota(3)">3</button>
+            <button class="nota-btn" onclick="setNota(4)">4</button>
+            <button class="nota-btn" onclick="setNota(5)">5</button>
+          </div>
+        </div>
+        <div class="form-group"><label class="label">Riscos identificados</label><textarea class="input" id="ps-riscos" rows="2" placeholder="Descreva os riscos..."></textarea></div>
+        <div class="form-group" style="margin-bottom:24px;"><label class="label">Recomendações</label><textarea class="input" id="ps-rec" rows="3" placeholder="Recomendações para a empresa e para o PRISMA..."></textarea></div>
+        <button class="btn btn-green" onclick="salvar()">Salvar e finalizar sessão 🔒</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const session=PRISMA.getSession();
+if(!session||session.role!=='profissional') location.href='login.html';
+document.getElementById('prof-tag').textContent=session.empresa;
+let sa=null, nota=0;
+
+function carregarSes(){
+  const ses=PRISMA.getSessoes(session.empresa);
+  const el=document.getElementById('lista-ses');
+  if(!ses.length){el.innerHTML='<div class="empty" style="margin-top:8px;"><p style="font-size:1.5rem;margin-bottom:8px;">📅</p><p>Nenhuma sessão agendada.</p></div>';return;}
+  el.innerHTML=ses.map(s=>{
+    const fin=s.status==='finalizada';
+    return `<div class="list-item" style="${fin?'opacity:0.6':''}">
+      <div class="card-icon ${fin?'icon-purple':'icon-green'}" style="width:44px;height:44px;font-size:1.1rem;flex-shrink:0;">${fin?'🔒':'💬'}</div>
+      <div style="flex:1;">
+        <h4>${s.horario||'Sessão'} — ${s.formato==='video'?'Vídeo':'Chat'}</h4>
+        <p>${new Date(s.data).toLocaleDateString('pt-BR')} · ${s.empresa}</p>
+        <div style="margin-top:4px;">${fin?'<span class="tag tag-gray">🔒 Finalizada</span>':'<span class="tag tag-green">● Agendada</span>'}</div>
+      </div>
+      ${fin?'':`<button class="btn btn-green btn-sm" onclick="abrirSes(${s.id})">Iniciar</button>`}
+    </div>`;
+  }).join('');
+}
+
+function abrirSes(id){
+  const ses=PRISMA.getSessoes(session.empresa);
+  sa=ses.find(s=>s.id===id); if(!sa) return;
+  document.getElementById('v-agenda').style.display='none';
+  document.getElementById('v-sessao').style.display='';
+  document.getElementById('s-titulo').textContent=`Sessão — ${sa.horario}`;
+  document.getElementById('s-sub').textContent=`${sa.empresa} · ${sa.formato==='video'?'Videochamada':'Chat'}`;
+  document.getElementById('chat-emp').textContent=sa.empresa+' (bloqueada)';
+  document.getElementById('chat-box').style.display='';
+  document.getElementById('pos-form').style.display='none';
+  document.getElementById('chat-msgs').innerHTML='<div class="msg msg-left"><div>Olá, estou aqui para conversar.</div><div class="msg-time">Agora</div></div>';
+}
+
+function enviar(){
+  const inp=document.getElementById('chat-inp'), m=inp.value.trim(); if(!m) return;
+  const msgs=document.getElementById('chat-msgs');
+  const now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  msgs.innerHTML+=`<div class="msg msg-right msg-green"><div>${m}</div><div class="msg-time">${now}</div></div>`;
+  inp.value=''; msgs.scrollTop=msgs.scrollHeight;
+}
+
+function encerrar(){
+  if(!confirm('Encerrar sessão e abrir formulário pós-sessão?')) return;
+  document.getElementById('chat-box').style.display='none';
+  document.getElementById('pos-form').style.display='';
+  document.getElementById('ps-emp').textContent=sa.empresa;
+}
+
+function setNota(n){ nota=n; document.querySelectorAll('.nota-btn').forEach((b,i)=>b.classList.toggle('on',i+1===n)); }
+
+function salvar(){
+  const resumo=document.getElementById('ps-resumo').value.trim();
+  if(!resumo){alert('Preencha o resumo.');return;}
+  if(!nota){alert('Selecione o nível de sofrimento.');return;}
+  PRISMA.finalizarSessao(sa.id,{resumo,temas:document.getElementById('ps-temas').value,nivelSofrimento:nota,riscos:document.getElementById('ps-riscos').value,recomendacoes:document.getElementById('ps-rec').value,profissional:session.name,empresa:sa.empresa});
+  alert('Sessão finalizada e bloqueada! 🔒');
+  voltar();
+}
+
+function voltar(){ document.getElementById('v-agenda').style.display=''; document.getElementById('v-sessao').style.display='none'; sa=null; nota=0; carregarSes(); }
+carregarSes();
+</script>
+
+<script>
+function sairApp() {
+  try { if(typeof PRISMA !== 'undefined') PRISMA.clearSession(); } catch(e) {}
+  window.location.href = './index.html';
+}
+</script>
+</body></html>

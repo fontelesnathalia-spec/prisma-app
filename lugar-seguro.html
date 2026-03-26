@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lugar Seguro — PRISMA</title>
+<script src="shared.js"></script>
+<link rel="stylesheet" href="style.css">
+<style>
+.topbar-badge { font-size:0.75rem; font-weight:700; color:var(--green); background:var(--green-bg); padding:5px 12px; border-radius:100px; }
+.view { display:none; padding:0 20px 40px; }
+.view.active { display:block; }
+.page-hd { display:flex; align-items:center; gap:12px; padding:20px 0 24px; }
+.suc-wrap { padding:40px 20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="logo">
+    <svg width="22" height="26" viewBox="0 0 26 31" fill="none">
+      <polygon points="13,2 1,27 25,27" fill="#3D7A5F" opacity="0.92"/>
+      <polygon points="1,27 13,31 13,2" fill="#2d6a4f" opacity="0.75"/>
+      <polygon points="25,27 13,31 13,2" fill="#7A3D6E" opacity="0.82"/>
+      <polygon points="13,2 8,10 13,7 18,10" fill="white" opacity="0.2"/>
+    </svg>
+    <div class="logo-text">
+      <span class="logo-name">PRISMA</span>
+      <span class="logo-sub">Soluções Corporativas</span>
+    </div>
+  </a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="topbar-badge" id="emp-badge"></span>
+    <button onclick="sairApp()" style="background:transparent;border:1.5px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;">Sair</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="view active" id="v-home">
+  <div style="padding:24px 0 12px;">
+    <h1>Lugar Seguro</h1>
+    <p style="margin-top:6px;">Aqui você pode se expressar com segurança e sigilo.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
+    <div class="card-row" id="btn-oc">
+      <div class="card-icon icon-green">📝</div>
+      <div class="card-row-text">
+        <h3>Canal de Registro de Ocorrência</h3>
+        <p>Registre uma situação de forma segura e sigilosa.</p>
+      </div>
+      <div class="card-row-arrow">›</div>
+    </div>
+    <div class="card-row" id="btn-ag">
+      <div class="card-icon icon-blue">📅</div>
+      <div class="card-row-text">
+        <h3>Agendar Sessão de Escuta Ativa</h3>
+        <p>Converse com um profissional especialista.</p>
+      </div>
+      <div class="card-row-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- OCORRÊNCIA -->
+<div class="view" id="v-oc">
+  <div class="page-hd">
+    <button class="btn btn-ghost btn-sm" id="back-oc">← Voltar</button>
+    <div><h2>Registrar Ocorrência</h2><p style="font-size:0.75rem;">Tratado com total sigilo</p></div>
+  </div>
+  <div class="card">
+    <div class="form-group">
+      <label class="label">Como você quer se identificar?</label>
+      <div class="toggle-group">
+        <button class="toggle-btn on" id="t-anon">🔒 Anônimo</button>
+        <button class="toggle-btn" id="t-id">👤 Identificado</button>
+      </div>
+    </div>
+    <div id="f-nome" style="display:none;" class="form-group">
+      <label class="label">Seu nome</label>
+      <input class="input" id="nome" type="text" placeholder="Seu nome completo"/>
+    </div>
+    <div class="form-group">
+      <label class="label">Tipo de situação</label>
+      <select class="input" id="tipo">
+        <option value="">Selecione...</option>
+        <option>Assédio moral</option>
+        <option>Assédio sexual</option>
+        <option>Discriminação</option>
+        <option>Sobrecarga de trabalho</option>
+        <option>Conflito com liderança</option>
+        <option>Conflito com colega</option>
+        <option>Burnout / sofrimento emocional</option>
+        <option>Outra situação</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="label">Frequência</label>
+      <select class="input" id="freq">
+        <option value="">Selecione...</option>
+        <option>Aconteceu uma vez</option>
+        <option>Acontece às vezes</option>
+        <option>Acontece frequentemente</option>
+        <option>Acontece todos os dias</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="label">Setor (opcional)</label>
+      <input class="input" id="setor" type="text" placeholder="Ex: Vendas, RH..."/>
+    </div>
+    <div class="form-group" style="margin-bottom:24px;">
+      <label class="label">Descreva a situação</label>
+      <textarea class="input" id="desc" rows="5" placeholder="Conte o que aconteceu. Você não precisa dar nomes se não quiser."></textarea>
+    </div>
+    <button class="btn btn-green" id="btn-enviar-oc">Enviar com segurança 🔒</button>
+  </div>
+</div>
+
+<!-- AGENDAMENTO -->
+<div class="view" id="v-ag">
+  <div class="page-hd">
+    <button class="btn btn-ghost btn-sm" id="back-ag">← Voltar</button>
+    <div><h2>Agendar Sessão</h2><p style="font-size:0.75rem;">Escolha formato e horário</p></div>
+  </div>
+  <div class="card">
+    <div class="form-group">
+      <label class="label">Formato</label>
+      <div class="toggle-group">
+        <button class="toggle-btn on" id="fmt-chat">💬 Chat</button>
+        <button class="toggle-btn" id="fmt-video">🎥 Vídeo</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="label">Horários disponíveis</label>
+      <div class="horarios-grid" id="h-grid"></div>
+      <p id="sem-h" style="display:none;font-size:0.83rem;color:var(--muted);text-align:center;padding:20px;background:var(--light);border-radius:10px;margin-top:8px;">Nenhum horário disponível.</p>
+    </div>
+    <div id="h-sel" style="display:none;margin-bottom:16px;">
+      <div class="alert alert-green">✓ Selecionado: <strong id="h-sel-txt"></strong></div>
+    </div>
+    <button id="btn-conf" style="display:none;" class="btn btn-green">Confirmar agendamento</button>
+  </div>
+</div>
+
+<!-- SUCESSO OC -->
+<div class="view" id="v-suc-oc">
+  <div class="suc-wrap">
+    <div class="success-icon">✓</div>
+    <h2 style="margin-bottom:8px;">Registro recebido!</h2>
+    <p style="margin-bottom:28px;">Suas informações estão protegidas e serão analisadas com sigilo.</p>
+    <div class="card" style="text-align:left;margin-bottom:16px;">
+      <h3 style="margin-bottom:12px;">Gostaria de agendar uma sessão para conversar sobre isso com um profissional?</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-green" id="btn-sim-ag">Sim, quero agendar</button>
+        <button class="btn btn-outline" id="btn-nao-ag">Não, obrigado</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCESSO AG -->
+<div class="view" id="v-suc-ag">
+  <div class="suc-wrap">
+    <div class="success-icon">📅</div>
+    <h2 style="margin-bottom:8px;">Sessão agendada!</h2>
+    <p id="msg-ag" style="margin-bottom:24px;"></p>
+    <div class="alert alert-green" style="text-align:left;margin-bottom:20px;">Um profissional estará disponível no horário agendado.</div>
+    <button class="btn btn-green" id="btn-volta-ag">Voltar ao início</button>
+  </div>
+</div>
+
+<script>
+  // Verificar sessão
+  var session = PRISMA.getSession();
+  if (!session || session.role !== 'colaborador') {
+    location.href = 'login-empresa.html';
+  } else {
+    document.getElementById('emp-badge').textContent = session.empresa;
+  }
+
+  var anon = true;
+  var fmt = 'chat';
+  var hSel = null;
+
+  // Função de navegação
+  function show(id) {
+    var views = document.querySelectorAll('.view');
+    for (var i = 0; i < views.length; i++) {
+      views[i].classList.remove('active');
+    }
+    document.getElementById(id).classList.add('active');
+    if (id === 'v-ag') loadH();
+    window.scrollTo(0, 0);
+  }
+
+  // Eventos dos botões principais
+  document.getElementById('btn-oc').addEventListener('click', function() { show('v-oc'); });
+  document.getElementById('btn-ag').addEventListener('click', function() { show('v-ag'); });
+  document.getElementById('back-oc').addEventListener('click', function() { show('v-home'); });
+  document.getElementById('back-ag').addEventListener('click', function() { show('v-home'); });
+  document.getElementById('btn-sim-ag').addEventListener('click', function() { show('v-ag'); });
+  document.getElementById('btn-nao-ag').addEventListener('click', function() { show('v-home'); });
+  document.getElementById('btn-volta-ag').addEventListener('click', function() { show('v-home'); });
+  document.getElementById('btn-enviar-oc').addEventListener('click', enviarOc);
+  document.getElementById('btn-conf').addEventListener('click', confirmar);
+
+  // Toggle anonimato
+  document.getElementById('t-anon').addEventListener('click', function() { setAnon(true); });
+  document.getElementById('t-id').addEventListener('click', function() { setAnon(false); });
+
+  // Toggle formato
+  document.getElementById('fmt-chat').addEventListener('click', function() { setFmt('chat'); });
+  document.getElementById('fmt-video').addEventListener('click', function() { setFmt('video'); });
+
+  function setAnon(v) {
+    anon = v;
+    document.getElementById('t-anon').classList.toggle('on', v);
+    document.getElementById('t-id').classList.toggle('on', !v);
+    document.getElementById('f-nome').style.display = v ? 'none' : '';
+  }
+
+  function setFmt(v) {
+    fmt = v;
+    document.getElementById('fmt-chat').classList.toggle('on', v === 'chat');
+    document.getElementById('fmt-video').classList.toggle('on', v === 'video');
+  }
+
+  function loadH() {
+    var hs = PRISMA.getHorarios(session.empresa);
+    var grid = document.getElementById('h-grid');
+    hSel = null;
+    document.getElementById('h-sel').style.display = 'none';
+    document.getElementById('btn-conf').style.display = 'none';
+    if (!hs.length) {
+      grid.style.display = 'none';
+      document.getElementById('sem-h').style.display = '';
+      return;
+    }
+    grid.style.display = 'grid';
+    document.getElementById('sem-h').style.display = 'none';
+    grid.innerHTML = hs.map(function(h) {
+      return '<button class="h-btn" data-h="' + h + '">' + h + '</button>';
+    }).join('');
+    grid.querySelectorAll('.h-btn').forEach(function(b) {
+      b.addEventListener('click', function() { selH(this.getAttribute('data-h')); });
+    });
+  }
+
+  function selH(h) {
+    hSel = h;
+    document.querySelectorAll('.h-btn').forEach(function(b) {
+      b.classList.toggle('sel', b.getAttribute('data-h') === h);
+    });
+    document.getElementById('h-sel').style.display = '';
+    document.getElementById('h-sel-txt').textContent = h + ' — ' + (fmt === 'chat' ? 'Chat' : 'Videochamada');
+    document.getElementById('btn-conf').style.display = '';
+  }
+
+  function enviarOc() {
+    var tipo = document.getElementById('tipo').value;
+    var desc = document.getElementById('desc').value.trim();
+    if (!tipo || !desc) { alert('Preencha o tipo e a descrição.'); return; }
+    PRISMA.addOcorrencia({
+      empresa: session.empresa,
+      anonimo: anon,
+      nome: anon ? 'Anônimo' : (document.getElementById('nome').value || 'Identificado'),
+      tipo: tipo,
+      frequencia: document.getElementById('freq').value,
+      setor: document.getElementById('setor').value,
+      descricao: desc
+    });
+    show('v-suc-oc');
+  }
+
+  function confirmar() {
+    if (!hSel) { alert('Selecione um horário.'); return; }
+    PRISMA.addSessao({ empresa: session.empresa, horario: hSel, formato: fmt, status: 'agendada' });
+    PRISMA.removerHorario(session.empresa, hSel);
+    document.getElementById('msg-ag').textContent = 'Sessão agendada para ' + hSel + ' via ' + (fmt === 'chat' ? 'chat' : 'videochamada') + '.';
+    show('v-suc-ag');
+  }
+</script>
+
+<script>
+function sairApp() {
+  try { if(typeof PRISMA !== 'undefined') PRISMA.clearSession(); } catch(e) {}
+  window.location.href = './index.html';
+}
+</script>
+</body>
+</html>

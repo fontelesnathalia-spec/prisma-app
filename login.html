@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Acesso Restrito — PRISMA</title>
+<script src="shared.js"></script>
+<link rel="stylesheet" href="style.css">
+<style>
+body { display:flex; flex-direction:column; min-height:100vh; background:var(--text); }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 60% 60% at 0% 100%,rgba(61,122,95,0.15) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 100% 0%,rgba(122,61,110,0.12) 0%,transparent 55%); pointer-events:none; }
+.wrap { flex:1; display:flex; flex-direction:column; justify-content:center; padding:0 24px 40px; max-width:400px; margin:0 auto; width:100%; position:relative; z-index:1; }
+.back { display:inline-flex; align-items:center; gap:6px; color:rgba(255,255,255,0.35); font-size:0.85rem; font-weight:600; text-decoration:none; padding:20px 0 32px; }
+.login-logo { display:flex; align-items:center; gap:10px; margin-bottom:32px; }
+.login-logo-name { font-weight:800; font-size:1rem; color:white; letter-spacing:0.08em; }
+.login-logo-sub { font-size:0.38rem; font-weight:700; color:rgba(255,255,255,0.4); letter-spacing:0.22em; text-transform:uppercase; margin-top:2px; }
+.dark-label { display:block; font-size:0.75rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:7px; }
+.dark-input { width:100%; padding:13px 16px; background:rgba(255,255,255,0.07); border:1.5px solid rgba(255,255,255,0.12); border-radius:var(--radius-sm); font-family:'Nunito',sans-serif; font-size:0.9rem; color:white; outline:none; transition:border-color 0.18s; }
+.dark-input:focus { border-color:rgba(61,122,95,0.6); }
+.dark-input::placeholder { color:rgba(255,255,255,0.25); }
+.err { background:rgba(192,50,50,0.15); color:#ff8888; border-radius:10px; padding:12px 16px; font-size:0.85rem; font-weight:600; margin-bottom:16px; display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" class="back">← Voltar</a>
+  <div class="login-logo">
+    <svg width="28" height="33" viewBox="0 0 26 31" fill="none">
+      <polygon points="13,2 1,27 25,27" fill="#3D7A5F" opacity="0.92"/>
+      <polygon points="1,27 13,31 13,2" fill="#2d6a4f" opacity="0.75"/>
+      <polygon points="25,27 13,31 13,2" fill="#7A3D6E" opacity="0.82"/>
+      <polygon points="13,2 8,10 13,7 18,10" fill="white" opacity="0.2"/>
+    </svg>
+    <div>
+      <div class="login-logo-name">PRISMA</div>
+      <div class="login-logo-sub">Soluções Corporativas</div>
+    </div>
+  </div>
+  <h1 style="color:white;margin-bottom:8px;">Acesso Restrito</h1>
+  <p style="color:rgba(255,255,255,0.4);margin-bottom:32px;">Para profissionais, gestores e administradores.</p>
+  <div class="err" id="err">Email ou senha incorretos.</div>
+  <div class="form-group">
+    <label class="dark-label">Email</label>
+    <input class="dark-input" id="e" type="email" placeholder="seu@email.com"/>
+  </div>
+  <div class="form-group" style="margin-bottom:24px;">
+    <label class="dark-label">Senha</label>
+    <input class="dark-input" id="p" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
+  </div>
+  <button onclick="login()" style="background:var(--green);color:white;border:none;border-radius:var(--radius-sm);padding:16px;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.95rem;cursor:pointer;width:100%;transition:opacity 0.18s;" onmouseover="this.style.opacity=0.88" onmouseout="this.style.opacity=1">Entrar →</button>
+</div>
+<script>
+function login(){
+  const e=document.getElementById('e').value.trim().toLowerCase();
+  const p=document.getElementById('p').value;
+  const u=PRISMA.users[e];
+  if(u&&u.password===p){
+    PRISMA.setSession({...u,email:e});
+    if(u.role==='admin') location.href='admin.html';
+    else if(u.role==='profissional') location.href='profissional.html';
+    else location.href='simulador.html';
+  } else document.getElementById('err').style.display='block';
+}
+</script>
+</body></html>

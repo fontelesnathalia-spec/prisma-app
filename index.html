@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PRISMA Soluções Corporativas</title>
+<script src="shared.js"></script>
+<link rel="stylesheet" href="style.css">
+<style>
+body { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
+.home-wrap { width:100%; max-width:360px; padding:0 24px; text-align:center; }
+.home-logo { margin-bottom:48px; }
+.home-logo svg { margin-bottom:12px; }
+.home-name { font-size:1.6rem; font-weight:800; letter-spacing:0.1em; color:var(--text); }
+.home-sub { font-size:0.52rem; font-weight:700; letter-spacing:0.28em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+.home-btns { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="home-wrap">
+  <div class="home-logo">
+    <svg width="56" height="66" viewBox="0 0 26 31" fill="none">
+      <polygon points="13,2 1,27 25,27" fill="#3D7A5F" opacity="0.92"/>
+      <polygon points="1,27 13,31 13,2" fill="#2d6a4f" opacity="0.75"/>
+      <polygon points="25,27 13,31 13,2" fill="#7A3D6E" opacity="0.82"/>
+      <polygon points="13,2 8,10 13,7 18,10" fill="white" opacity="0.2"/>
+    </svg>
+    <div class="home-name">PRISMA</div>
+    <div class="home-sub">Soluções Corporativas</div>
+  </div>
+  <div class="home-btns">
+    <button class="btn btn-green" onclick="location.href='login-empresa.html'">🛡️ Lugar Seguro</button>
+    <button class="btn btn-dark" onclick="location.href='login.html'">🔐 Acesso Restrito</button>
+  </div>
+</div>
+<script>
+const s=PRISMA.getSession();
+if(s){
+  if(s.role==='admin') location.href='admin.html';
+  else if(s.role==='profissional') location.href='profissional.html';
+  else if(s.role==='gestor') location.href='simulador.html';
+  else if(s.role==='colaborador') location.href='lugar-seguro.html';
+}
+</script>
+</body></html>
